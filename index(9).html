@@ -1,0 +1,192 @@
+        <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Tab</title>
+      <link class="js-site-favicon" id="siteFavicon" rel="icon" type="image/jpg" href="https://img.icons8.com/?size=100&id=468lOtu93rmq&format=png&color=343434">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* --- IFRAME CONTAINER --- */
+        #app-iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 1;
+        }
+
+        #cine-container {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            overflow: hidden;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.4s ease, opacity 0.8s ease;
+        }
+
+        /* --- BUTTON HOVER --- */
+        #init-button {
+            background: transparent;
+            border: 1px solid #000;
+            color: #000;
+            padding: 15px 40px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        #init-button:hover {
+            background-color: #000 !important;
+            color: #fff !important;
+        }
+
+        .fullscreen-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        /* --- ANIMATION CONTAINER --- */
+        #animation-stage {
+            display: none;
+            z-index: 10;
+            background: transparent; 
+            text-align: center;
+        }
+
+        .media-asset-contained {
+            width: 50px;          
+            max-width: 50%;       
+            height: auto;          
+            display: block;
+            border: 0 !important;  
+            outline: none !important;
+            box-shadow: none !important;
+            -webkit-tap-highlight-color: transparent;
+            filter: invert(1);
+        }
+    </style>
+</head>
+<body>
+
+<iframe id="app-iframe" src="about:blank" allow="autoplay; fullscreen"></iframe>
+
+<div id="cine-container">
+    
+    <div id="stage-init" class="fullscreen-center" style="background: transparent; z-index: 20; transition: opacity 0.4s ease;">
+        <button id="init-button">CONNECT TO WORKSHOP PROXY</button>
+    </div>
+
+    <div id="animation-stage"></div>
+
+</div>
+
+<script>
+(function() {
+    const initBtn = document.getElementById('init-button');
+    const stageInit = document.getElementById('stage-init');
+    const animationStage = document.getElementById('animation-stage');
+    const cineContainer = document.getElementById('cine-container');
+    const appIframe = document.getElementById('app-iframe');
+
+    const targetUrl = "https://json-b6t.pages.dev/";
+
+    // Audio Assets
+    const clickSound = new Audio('https://github.com/school-rgb/math-loading-/raw/refs/heads/main/ps5-selection-button.mp3');
+    const loadingSound = new Audio('https://github.com/school-rgb/math-loading-/raw/refs/heads/main/wii-u-loading-sound.mp3');
+    const finishSound = new Audio('https://github.com/school-rgb/math-loading-/raw/refs/heads/main/wii-home-button-sound-effects-hd-audiotrimmer_vMXRIIu.mp3');
+    const startupSound = new Audio('https://github.com/school-rgb/math-loading-/raw/refs/heads/main/windows-7-startup.mp3'); // 4th Sound Effect
+
+    // Image Assets
+    const successPngUrl = "https://img.icons8.com/?size=100&id=7690&format=png&color=000000";
+
+    const systemManifest = {
+        assets: [
+            { name: "system_manifest.json", type: "config" },
+            { name: "icons8-loading (2).gif", type: "intro_animation", url: "https://github.com/school-rgb/screen-/blob/main/icons8-loading%20(2).gif?raw=true" }
+        ]
+    };
+
+    initBtn.addEventListener('click', () => {
+        // Pre-load iframe source silently in background during loading
+        appIframe.src = targetUrl;
+
+        initBtn.textContent = "CONNECTING TO WORKSHOP PROXY...";
+        initBtn.style.backgroundColor = "#000";
+        initBtn.style.color = "#fff";
+        initBtn.style.pointerEvents = "none";
+
+        // Effect 1: Play initial button click sound
+        clickSound.play().catch(err => console.log("Audio playback error:", err));
+
+        clickSound.addEventListener('ended', () => {
+            const targetAsset = systemManifest.assets.find(file => file.name === "icons8-loading (2).gif");
+            const fallbackUrl = "https://github.com/school-rgb/screen-/blob/main/icons8-loading%20(2).gif?raw=true";
+            const verifiedCdnUrl = targetAsset ? targetAsset.url : fallbackUrl;
+
+            cineContainer.style.backgroundColor = "#000";
+            stageInit.style.opacity = '0';
+
+            setTimeout(() => {
+                stageInit.style.display = 'none';
+                animationStage.style.display = 'block'; 
+
+                const cacheBuster = new Date().getTime();
+
+                // Display loading GIF
+                animationStage.innerHTML = `
+                    <img src="${verifiedCdnUrl}?t=${cacheBuster}" class="media-asset-contained" alt="Loading...">
+                `;
+
+                // Effect 2: Play loading screen sound
+                loadingSound.play().catch(err => console.log("Audio playback error:", err));
+
+                loadingSound.addEventListener('ended', () => {
+                    animationStage.innerHTML = `
+                        <img src="${successPngUrl}" class="media-asset-contained" alt="Complete">
+                    `;
+
+                    // Effect 3: Play completion sound
+                    finishSound.play().catch(err => console.log("Audio playback error:", err));
+
+                    finishSound.addEventListener('ended', () => {
+                        // Effect 4: Play Windows 7 startup sound
+                        startupSound.play().catch(err => console.log("Audio playback error:", err));
+
+                        // Fade out loading screen to reveal the embedded website inside the iframe
+                        cineContainer.style.opacity = '0';
+                        setTimeout(() => {
+                            cineContainer.style.display = 'none';
+                        }, 800);
+                    });
+                });
+
+            }, 400);
+        });
+    });
+})();
+</script>
+
+</body>
+</html>
